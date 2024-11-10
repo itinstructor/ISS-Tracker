@@ -7,6 +7,6 @@ python -m nuitka ^
     --plugin-enable=tk-inter ^
     --nofollow-import-to=PySide6 ^
     --windows-console-mode=disable ^
-    --windows-icon-from-ico=map.ico ^
+    --windows-icon-from-ico=./img/map.ico ^
     iss_tkintermapview.py
 pause
