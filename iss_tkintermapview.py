@@ -10,8 +10,7 @@
 # pip install tkintermapview
 from time import sleep
 import tkintermapview as tkmap
-import tkinter as tk
-import tkinter.ttk as ttk
+import customtkinter as ctk
 import requests
 import threading
 # https://wheretheiss.at/w/developer
@@ -25,8 +24,8 @@ class ISSTracker:
 
     def __init__(
         self,
-            window_width=1024,
-            window_height=768,
+            window_width=1024 * 2,
+            window_height=768 * 2,
             update_interval=10
     ):
         """Initialize the ISS tracker application.
@@ -44,8 +43,12 @@ class ISSTracker:
         self.update_thread = None
         self.count = 0
 
+        # Set the appearance mode and default color theme
+        ctk.set_appearance_mode("dark")
+        ctk.set_default_color_theme("dark-blue")
+
         # Initialize the main window
-        self.root = tk.Tk()
+        self.root = ctk.CTk()
         self.root.title("ISS Tracker")
 
         # The WM_DELETE_WINDOW protocol is used to handle what happens
@@ -114,7 +117,8 @@ class ISSTracker:
                 self.count += 1
                 self.lbl_count.configure(text=f" Count: {self.count} ")
                 self.lbl_lat.configure(text=f" Latitude: {self.latitude:.4f} ")
-                self.lbl_lon.configure(text=f" Longitude: {self.longitude:.4f} ")
+                self.lbl_lon.configure(text=f" Longitude: {
+                                       self.longitude:.4f} ")
 
                 # Schedule GUI update on the main thread
                 self.root.after(0, self.update_marker_position)
@@ -157,48 +161,59 @@ class ISSTracker:
 # ------------------------- CREATE WIDGETS ------------------------------- #
     def create_widgets(self):
         """Create the main application widgets."""
-        self.map_frame = tk.Frame(self.root)
-        self.map_frame.grid(row=0, column=0, padx=10, pady=10)
+        # Create main container
+        self.main_frame = ctk.CTkFrame(self.root)
+        self.main_frame.pack(padx=10, pady=10, expand=True, fill="both")
 
+        # Create map frame
+        self.map_frame = ctk.CTkFrame(self.main_frame)
+        self.map_frame.pack(padx=10, pady=10, expand=True, fill="both")
+
+        # Create map widget
         self.map = tkmap.TkinterMapView(
             self.map_frame,
             width=self.width,
             height=self.height,
-            corner_radius=0
+            corner_radius=2
         )
-
         self.map.set_position(self.latitude, self.longitude)
-        self.map.set_zoom(4)
-        self.map.pack()
+        self.map.set_zoom(5)
+        self.map.pack(expand=True, fill="both")
 
-        self.status_frame = tk.Frame(self.root)
-        self.status_frame.grid(row=1, column=0, padx=10, pady=(0, 10))
+        # Create status frame with modern styling
+        self.status_frame = ctk.CTkFrame(self.main_frame)
+        self.status_frame.pack(padx=10, pady=(0, 10), fill="x")
 
-        self.lbl_count = ttk.Label(
+        # Create labels with CustomTkinter styling
+        self.lbl_lat = ctk.CTkLabel(
             self.status_frame,
-            text=" Count: 0 ",
-            width=20,
-            relief=tk.GROOVE
+            text=f"Latitude: {self.latitude:.4f}",
+            corner_radius=6,
+            fg_color=("gray85", "gray25"),
+            padx=10,
+            pady=5
         )
-        self.lbl_lat = ttk.Label(
+        self.lbl_lon = ctk.CTkLabel(
             self.status_frame,
-            text=f" Latitude: {self.latitude:.4f} ",
-            width=20,
-            relief=tk.GROOVE
+            text=f"Longitude: {self.longitude:.4f}",
+            corner_radius=6,
+            fg_color=("gray85", "gray25"),
+            padx=10,
+            pady=5
         )
-        self.lbl_lon = ttk.Label(
+        self.lbl_count = ctk.CTkLabel(
             self.status_frame,
-            text=f" Longitude: {self.longitude:.4f} ",
-            width=20,
-            relief=tk.GROOVE
+            text="Count: 0",
+            corner_radius=6,
+            fg_color=("gray85", "gray25"),
+            padx=10,
+            pady=5
         )
 
-        self.lbl_lat.grid(row=0, column=0, sticky="w")
-        self.lbl_lon.grid(row=0, column=1, sticky="w")
-        self.lbl_count.grid(row=0, column=2, sticky="w")
-
-        for child in self.status_frame.winfo_children():
-            child.grid_configure(padx=5, pady=3, ipadx=2, ipady=2)
+        # Grid layout for status labels
+        self.lbl_lat.pack(side="left", padx=5, pady=5)
+        self.lbl_lon.pack(side="left", padx=5, pady=5)
+        self.lbl_count.pack(side="left", padx=5, pady=5)
 
         # Bind the Escape key to the quit method
         self.root.bind("<Escape>", self.quit)
