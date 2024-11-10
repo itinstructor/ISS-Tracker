@@ -8,11 +8,15 @@
 
 # https://github.com/TomSchimansky/TkinterMapView
 # pip install tkintermapview
+from base64 import b64decode
 from time import sleep
 import tkintermapview as tkmap
 import customtkinter as ctk
+from PIL import Image, ImageTk
 import requests
 import threading
+from iis_icon import ICON_16
+from iis_icon import ICON_32
 # https://wheretheiss.at/w/developer
 URL = "https://api.wheretheiss.at/v1/satellites/25544?units=miles"
 # http://open-notify.org/Open-Notify-API/ISS-Location-Now/
@@ -38,11 +42,6 @@ class ISSTracker:
         self.width = window_width
         self.height = window_height
 
-        self.update_interval = update_interval
-        self.running = False
-        self.update_thread = None
-        self.count = 0
-
         # Set the appearance mode and default color theme
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
@@ -51,9 +50,19 @@ class ISSTracker:
         self.root = ctk.CTk()
         self.root.title("ISS Tracker")
 
+        small_icon = ImageTk.PhotoImage(data=b64decode(ICON_16))
+        large_icon = ImageTk.PhotoImage(data=b64decode(ICON_32))
+        self.root.wm_iconbitmap()
+        self.root.iconphoto(False, large_icon, small_icon)
+
         # The WM_DELETE_WINDOW protocol is used to handle what happens
         # when the user clicks the close button of a window.
         self.root.protocol("WM_DELETE_WINDOW", self.quit)
+
+        self.update_interval = update_interval
+        self.running = False
+        self.update_thread = None
+        self.count = 0
 
         self.marker = None
         self.get_iss_position()
