@@ -8,5 +8,5 @@ python -m nuitka ^
     --nofollow-import-to=PySide6 ^
     --windows-console-mode=disable ^
     --windows-icon-from-ico=./img/map.ico ^
-    iss_tkintermapview.py
+    iss_tracker.py
 pause
