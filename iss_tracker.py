@@ -1,9 +1,9 @@
-
 """
-    Name: iis_tkintermapview.py
+    Name: iis_tracker.py
     Author: William A Loring
     Created: 11/09/2024
-    Description: Track the International Space Station (ISS) using Tkinter and MapView
+    Description: Track the International Space Station (ISS) using Tkinter
+    and TkinterMapView
 """
 
 # https://github.com/TomSchimansky/TkinterMapView
@@ -14,7 +14,7 @@ from time import sleep
 import customtkinter as ctk
 from PIL import ImageTk
 import requests
-import threading
+from threading import Thread
 from iis_icon import ICON_16
 from iis_icon import ICON_32
 
@@ -107,7 +107,7 @@ class ISSTracker:
 
         # Check for HTTP errors
         response.raise_for_status()
-        
+
         # Parse the JSON response to a Python dictionary
         position = response.json()
 
@@ -145,7 +145,7 @@ class ISSTracker:
         if self.marker:
             self.marker.set_position(self.latitude, self.longitude)
             self.map.set_position(self.latitude, self.longitude)
-        
+
         else:
             self.marker = self.map.set_marker(
                 self.latitude,
@@ -178,15 +178,15 @@ class ISSTracker:
         self.running = True
 
         # Create the thread to update the ISS position
-        self.update_thread = threading.Thread(
+        self.update_thread = Thread(
             target=self.update_iss_position_thread,
             daemon=True
         )
-        
+
         # Start the thread
         self.update_thread.start()
 
-        # Start the main event loop
+        # Start the main event loop of the program
         self.root.mainloop()
 
 # ------------------------- CREATE WIDGETS ------------------------------- #
