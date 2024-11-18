@@ -9,6 +9,7 @@
 
 ## Changes
 
+- 11/18/2024: Added line between locations, added ability to change update interval
 - 11/09/2024: Initial commit
 
 ## License

@@ -4,6 +4,7 @@
     Created: 11/09/2024
     Description: Track the International Space Station (ISS) using Tkinter
     and TkinterMapView
+    Claude.ai used as a code helper
 """
 # https://github.com/TomSchimansky/TkinterMapView
 # pip install tkintermapview
@@ -64,6 +65,9 @@ class ISSTracker:
         self.update_thread = None
         self.count = 0
 
+        # Track previous positions for drawing lines
+        self.previous_positions = []
+
         self.marker = None
         self.get_iss_position()
 
@@ -77,7 +81,6 @@ class ISSTracker:
     def initialize_marker(self):
         """Create the initial ISS marker with the current ISS position."""
         try:
-
             # Create marker with red color
             self.marker = self.map.set_marker(
                 self.latitude,
@@ -86,6 +89,8 @@ class ISSTracker:
                 marker_color_circle="red",
                 marker_color_outside="darkblue"
             )
+            # Add initial position to previous positions
+            self.previous_positions.append((self.latitude, self.longitude))
 
         except Exception as e:
             print(f"Error initializing marker: {e}")
@@ -97,6 +102,7 @@ class ISSTracker:
                 marker_color_circle="red",
                 marker_color_outside="darkblue"
             )
+            self.previous_positions.append((0, 0))
 
 # ------------------------- GET ISS POSITION ---------------------------- #
     def get_iss_position(self):
@@ -142,8 +148,22 @@ class ISSTracker:
     def update_marker_position(self):
         """Update the marker and map position in the GUI thread."""
         if self.marker:
+            # Draw line from previous position
+            if self.previous_positions:
+                last_pos = self.previous_positions[-1]
+                # Add a line to show the path
+                self.map.set_path(
+                    [last_pos, (self.latitude, self.longitude)],
+                    color="blue",
+                    width=2
+                )
+
+            # Update marker and map position
             self.marker.set_position(self.latitude, self.longitude)
             self.map.set_position(self.latitude, self.longitude)
+
+            # Add new position to tracking list
+            self.previous_positions.append((self.latitude, self.longitude))
 
         else:
             self.marker = self.map.set_marker(
@@ -153,6 +173,7 @@ class ISSTracker:
                 marker_color_circle="red",
                 marker_color_outside="red"
             )
+            self.previous_positions.append((self.latitude, self.longitude))
 
 # ------------------------- CHANGE MAP ----------------------------------- #
     def change_map(self, new_map: str):
@@ -173,6 +194,21 @@ class ISSTracker:
                 "https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}&s=Ga",
                 max_zoom=22
             )
+
+# ------------------------- CHANGE UPDATE INTERVAL ---------------------- #
+    def change_update_interval(self, new_interval: str):
+        """Change the update interval for ISS position tracking."""
+        try:
+            interval = int(new_interval)
+            if interval > 0:
+                self.update_interval = interval
+                self.lbl_interval.configure(
+                    text=f" Update Interval: {interval} seconds "
+                )
+            else:
+                raise ValueError("Interval must be a positive integer")
+        except ValueError:
+            print("Invalid update interval. Please enter a positive number.")
 
 # ------------------------- RUN ------------------------------------------ #
     def run(self):
@@ -237,6 +273,12 @@ class ISSTracker:
             corner_radius=6,
             fg_color=("gray85", "gray25")
         )
+        self.lbl_interval = ctk.CTkLabel(
+            self.status_frame,
+            text=f"Update Interval: {self.update_interval} seconds",
+            corner_radius=6,
+            fg_color=("gray85", "gray25")
+        )
         self.lbl_tile_server = ctk.CTkLabel(
             self.status_frame,
             text="Tile Server",
@@ -244,10 +286,30 @@ class ISSTracker:
             fg_color=("gray85", "gray25")
         )
 
+        # Create option menus
         self.map_option_menu = ctk.CTkOptionMenu(
             self.status_frame,
             values=["OpenStreetMap", "Google normal", "Google satellite"],
             command=self.change_map
+        )
+
+        # Add update interval input
+        self.interval_entry = ctk.CTkEntry(
+            self.status_frame,
+            placeholder_text="Enter update interval (seconds)"
+        )
+        self.interval_button = ctk.CTkButton(
+            self.status_frame,
+            text="Set Interval",
+            command=lambda: self.change_update_interval(
+                self.interval_entry.get()
+            )
+        )
+
+        self.btn_exit = ctk.CTkButton(
+            self.status_frame,
+            text="Quit",
+            command=lambda: self.quit
         )
 
         # Grid layout for status labels
@@ -257,15 +319,30 @@ class ISSTracker:
         self.lbl_lon.grid(
             row=1, column=0, padx=10, pady=10, sticky="ew"
         )
+
         self.lbl_count.grid(
-            row=2, column=0, padx=10, pady=10, sticky="ew"
+            row=2, column=0, padx=10, pady=(40, 10), sticky="ew"
+        )
+        self.lbl_interval.grid(
+            row=3, column=0, padx=10, pady=10, sticky="ew"
         )
 
         self.lbl_tile_server.grid(
-            row=3, column=0, padx=10, pady=(40, 10), sticky="ew"
+            row=4, column=0, padx=10, pady=(40, 10), sticky="ew"
         )
         self.map_option_menu.grid(
-            row=4, column=0, padx=10, pady=10, sticky="ew"
+            row=5, column=0, padx=10, pady=10, sticky="ew"
+        )
+
+        self.interval_entry.grid(
+            row=6, column=0, padx=10, pady=(40, 10), sticky="ew"
+        )
+        self.interval_button.grid(
+            row=7, column=0, padx=10, pady=10, sticky="ew"
+        )
+
+        self.btn_exit.grid(
+            row=8, column=0, padx=10, pady=(40, 10), sticky="ew"
         )
 
         for child in self.status_frame.winfo_children():
