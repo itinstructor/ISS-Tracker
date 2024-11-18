@@ -5,7 +5,6 @@
     Description: Track the International Space Station (ISS) using Tkinter
     and TkinterMapView
 """
-
 # https://github.com/TomSchimansky/TkinterMapView
 # pip install tkintermapview
 import tkintermapview as tkmap
@@ -13,7 +12,7 @@ from base64 import b64decode
 from time import sleep
 import customtkinter as ctk
 from PIL import ImageTk
-import requests
+from requests import get
 from threading import Thread
 from iis_icon import ICON_16
 from iis_icon import ICON_32
@@ -103,7 +102,7 @@ class ISSTracker:
     def get_iss_position(self):
         """Fetch the current ISS position from API."""
         # Get the current ISS position from the API
-        response = requests.get(URL)
+        response = get(URL)
 
         # Check for HTTP errors
         response.raise_for_status()
@@ -160,17 +159,20 @@ class ISSTracker:
         """Change the map tile server based on the selected option."""
         if new_map == "OpenStreetMap":
             self.map.set_tile_server(
-                "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png")
+                "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            )
 
         elif new_map == "Google normal":
             self.map.set_tile_server(
                 "https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga",
-                max_zoom=22)
+                max_zoom=22
+            )
 
         elif new_map == "Google satellite":
             self.map.set_tile_server(
                 "https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}&s=Ga",
-                max_zoom=22)
+                max_zoom=22
+            )
 
 # ------------------------- RUN ------------------------------------------ #
     def run(self):
@@ -180,7 +182,7 @@ class ISSTracker:
         # Create the thread to update the ISS position
         self.update_thread = Thread(
             target=self.update_iss_position_thread,
-            daemon=True
+            daemon=True     # This stops the thread on program exit
         )
 
         # Start the thread
@@ -276,6 +278,7 @@ class ISSTracker:
     def quit(self, *arts):
         """Stop the ISS tracker application."""
         self.running = False
+        # Closes the main application window by destroying the root window
         self.root.destroy()
 
 
