@@ -65,7 +65,7 @@ class ISSTracker:
         self.update_thread = None
         self.count = 0
 
-        # Track previous positions for drawing lines
+        # LIst to track previous positions for drawing lines
         self.previous_positions = []
 
         self.marker = None
@@ -83,11 +83,11 @@ class ISSTracker:
         try:
             # Create marker with red color
             self.marker = self.map.set_marker(
-                self.latitude,
-                self.longitude,
-                text="ISS",
-                marker_color_circle="red",
-                marker_color_outside="darkblue"
+                self.latitude,                  # X coordinage
+                self.longitude,                 # Y coordinate
+                text="ISS",                     # Text to display on marker
+                marker_color_circle="red",      # Circle color
+                marker_color_outside="darkblue"  # Outside color
             )
             # Add initial position to previous positions
             self.previous_positions.append((self.latitude, self.longitude))
@@ -126,7 +126,7 @@ class ISSTracker:
         while self.running:
             try:
                 self.get_iss_position()
-
+                # Update the position count
                 self.count += 1
                 self.lbl_count.configure(text=f" Count: {self.count} ")
                 self.lbl_lat.configure(text=f" Latitude: {self.latitude:.4f} ")
@@ -153,9 +153,11 @@ class ISSTracker:
                 last_pos = self.previous_positions[-1]
                 # Add a line to show the path
                 self.map.set_path(
-                    [last_pos, (self.latitude, self.longitude)],
-                    color="blue",
-                    width=2
+                    [last_pos,                          # Previous position
+                     (self.latitude, self.longitude)    # Current position
+                     ],
+                    color="blue",                       # Line color
+                    width=3                             # Line width
                 )
 
             # Update marker and map position
@@ -309,7 +311,7 @@ class ISSTracker:
         self.btn_exit = ctk.CTkButton(
             self.status_frame,
             text="Quit",
-            command=lambda: self.quit
+            command=self.quit
         )
 
         # Grid layout for status labels
