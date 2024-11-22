@@ -15,6 +15,7 @@ import customtkinter as ctk
 from PIL import ImageTk
 from requests import get
 from threading import Thread
+from tktooltip import ToolTip
 from iis_icon import ICON_16
 from iis_icon import ICON_32
 
@@ -48,6 +49,7 @@ class ISSTracker:
         # Initialize the main window
         self.root = ctk.CTk()
         self.root.title("ISS Tracker")
+        self.root.geometry("+50+50")
 
         # Set the window and taskbar icon
         small_icon = ImageTk.PhotoImage(data=b64decode(ICON_16))
@@ -197,7 +199,7 @@ class ISSTracker:
                 max_zoom=22
             )
 
-# ------------------------- CHANGE UPDATE INTERVAL ---------------------- #
+# ------------------------- CHANGE UPDATE INTERVAL ----------------------- #
     def change_update_interval(self, new_interval: str):
         """Change the update interval for ISS position tracking."""
         try:
@@ -294,6 +296,7 @@ class ISSTracker:
             values=["OpenStreetMap", "Google normal", "Google satellite"],
             command=self.change_map
         )
+        ToolTip(self.map_option_menu, "Select a map tile server")
 
         # Add update interval input
         self.interval_entry = ctk.CTkEntry(
@@ -307,12 +310,14 @@ class ISSTracker:
                 self.interval_entry.get()
             )
         )
+        ToolTip(self.interval_button, "Set the update interval in seconds")
 
         self.btn_exit = ctk.CTkButton(
             self.status_frame,
             text="Quit",
             command=self.quit
         )
+        ToolTip(self.btn_exit, "Press the Escape key to quit")
 
         # Grid layout for status labels
         self.lbl_lat.grid(
