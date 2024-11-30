@@ -8,9 +8,11 @@
 """
 # https://github.com/TomSchimansky/TkinterMapView
 # pip install tkintermapview
+import requests
 import tkintermapview as tkmap
 from base64 import b64decode
 from time import sleep
+from datetime import datetime
 import customtkinter as ctk
 from PIL import ImageTk
 from requests import get
@@ -85,14 +87,14 @@ class ISSTracker:
         try:
             # Create marker with red color
             self.marker = self.map.set_marker(
-                self.latitude,                  # X coordinage
-                self.longitude,                 # Y coordinate
+                self.lat,                  # X coordinage
+                self.lng,                 # Y coordinate
                 text="ISS",                     # Text to display on marker
                 marker_color_circle="red",      # Circle color
                 marker_color_outside="darkblue"  # Outside color
             )
             # Add initial position to previous positions
-            self.previous_positions.append((self.latitude, self.longitude))
+            self.previous_positions.append((self.lat, self.lng))
 
         except Exception as e:
             print(f"Error initializing marker: {e}")
@@ -119,8 +121,8 @@ class ISSTracker:
         position = response.json()
 
         # Extract the latitude and longitude from the response
-        self.latitude = float(position.get("latitude"))
-        self.longitude = float(position.get("longitude"))
+        self.lat = float(position.get("latitude"))
+        self.lng = float(position.get("longitude"))
 
 # -------------------- UPDATE ISS POSITION THREAD ------------------------ #
     def update_iss_position_thread(self):
@@ -131,10 +133,13 @@ class ISSTracker:
                 # Update the position count
                 self.count += 1
                 self.lbl_count.configure(text=f" Count: {self.count} ")
-                self.lbl_lat.configure(text=f" Latitude: {self.latitude:.4f} ")
-                self.lbl_lon.configure(
-                    text=f" Longitude: {self.longitude:.4f} "
+                self.lbl_lat.configure(text=f" Latitude: {self.lat:.4f} ")
+                self.lbl_lng.configure(
+                    text=f" Longitude: {self.lng:.4f} "
                 )
+
+                # Get the current weather
+                self.get_weather()
 
                 # Schedule GUI update on the main thread
                 # This will keep the GUI responsive while updating the marker
@@ -156,28 +161,28 @@ class ISSTracker:
                 # Add a line to show the path
                 self.map.set_path(
                     [last_pos,                          # Previous position
-                     (self.latitude, self.longitude)    # Current position
+                     (self.lat, self.lng)    # Current position
                      ],
                     color="blue",                       # Line color
                     width=3                             # Line width
                 )
 
             # Update marker and map position
-            self.marker.set_position(self.latitude, self.longitude)
-            self.map.set_position(self.latitude, self.longitude)
+            self.marker.set_position(self.lat, self.lng)
+            self.map.set_position(self.lat, self.lng)
 
             # Add new position to tracking list
-            self.previous_positions.append((self.latitude, self.longitude))
+            self.previous_positions.append((self.lat, self.lng))
 
         else:
             self.marker = self.map.set_marker(
-                self.latitude,
-                self.longitude,
+                self.lat,
+                self.lng,
                 text="ISS",
                 marker_color_circle="red",
                 marker_color_outside="red"
             )
-            self.previous_positions.append((self.latitude, self.longitude))
+            self.previous_positions.append((self.lat, self.lng))
 
 # ------------------------- CHANGE MAP ----------------------------------- #
     def change_map(self, new_map: str):
@@ -214,7 +219,54 @@ class ISSTracker:
         except ValueError:
             print("Invalid update interval. Please enter a positive number.")
 
+# ------------------------- GET WEATHER ---------------------------------- #
+    def get_weather(self):
+        params = {
+            "latitude": f"{self.lat}",
+            "longitude": f"{self.lng}",
+            "hourly": ["temperature_2m", "relativehumidity_2m", "wind_speed_10m", "surface_pressure"],
+            "temperature_unit": "fahrenheit",
+            "wind_speed_unit": "mph",
+            "pressure_unit": "hPa",
+            "timezone": "America/Denver"
+        }
+
+        # URL to access current Open-Meteo weather for a location
+        URL = "https://api.open-meteo.com/v1/forecast?"
+        # Get the API JSON data as a Python requests object
+        response = requests.get(
+            URL,
+            params=params
+        )
+
+        data = response.json()
+
+        # Get current hour
+        current_hour = datetime.now().hour
+
+        # Print raw JSON data for demonstration
+        # print(response.text)
+
+        # Assuming the response contains an hourly list with 24 items,
+        # one for each hour of the day, And assuming the first item
+        # corresponds to the first hour of the current day in the specified timezone
+        # This might need adjustment based on the actual structure and data of the response
+        temp = data['hourly']['temperature_2m'][current_hour]
+        humidity = data['hourly']['relativehumidity_2m'][current_hour]
+        wind_speed = data['hourly']['wind_speed_10m'][current_hour]
+        pressure = data['hourly']['surface_pressure'][current_hour]
+        pressure = round(pressure * 0.029529983071445, 2)
+
+        #  console.print(f"     Temp: [bold cyan]{c_data[0]}°F[/bold cyan]")
+        # console.print(f" Humidity: [bold cyan]{c_data[1]}%[/bold cyan]")
+        # console.print(f"  Wind Sp: [bold cyan]{c_data[2]} mph[/bold cyan]")
+        self.lbl_temp.configure(text=f"Temperature: {temp}°F")
+        self.lbl_humidity.configure(text=f"Humidity: {humidity}%")
+        self.lbl_wind.configure(text=f"Wind Speed: {wind_speed} mph")
+        self.lbl_pressure.configure(text=f"Pressure: {pressure} inHg")
+
 # ------------------------- RUN ------------------------------------------ #
+
     def run(self):
         """Start the ISS tracker application."""
         self.running = True
@@ -234,6 +286,10 @@ class ISSTracker:
 # ------------------------- CREATE WIDGETS ------------------------------- #
     def create_widgets(self):
         """Create the main application widgets."""
+        BIG_GAP = 40
+        SMALL_GAP = 10
+        TINY_GAP = 5
+
         # Create main container
         self.main_frame = ctk.CTkFrame(self.root)
         self.main_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
@@ -249,7 +305,7 @@ class ISSTracker:
             height=self.height,
             corner_radius=2
         )
-        self.map.set_position(self.latitude, self.longitude)
+        self.map.set_position(self.lat, self.lng)
         self.map.set_zoom(5)
         self.map.pack(expand=True, fill="both")
 
@@ -261,13 +317,13 @@ class ISSTracker:
         # Create labels with CustomTkinter styling
         self.lbl_lat = ctk.CTkLabel(
             self.status_frame,
-            text=f"Latitude: {self.latitude:.4f}",
+            text=f"Latitude: {self.lat:.4f}",
             corner_radius=6,
             fg_color=("gray85", "gray25")
         )
-        self.lbl_lon = ctk.CTkLabel(
+        self.lbl_lng = ctk.CTkLabel(
             self.status_frame,
-            text=f"Longitude: {self.longitude:.4f}",
+            text=f"Longitude: {self.lng:.4f}",
             corner_radius=6,
             fg_color=("gray85", "gray25")
         )
@@ -312,19 +368,19 @@ class ISSTracker:
         )
         ToolTip(self.interval_button, "Set the update interval in seconds")
 
-        self.btn_exit = ctk.CTkButton(
+        self.btn_quit = ctk.CTkButton(
             self.status_frame,
             text="Quit",
             command=self.quit
         )
-        ToolTip(self.btn_exit, "Press the Escape key to quit")
+        ToolTip(self.btn_quit, "Press the Escape key to quit")
 
         # Grid layout for status labels
         self.lbl_lat.grid(
-            row=0, column=0, padx=10, pady=10, sticky="ew"
+            row=0, column=0, padx=SMALL_GAP, pady=SMALL_GAP, sticky="ew"
         )
-        self.lbl_lon.grid(
-            row=1, column=0, padx=10, pady=10, sticky="ew"
+        self.lbl_lng.grid(
+            row=1, column=0, padx=SMALL_GAP, pady=10, sticky="ew"
         )
 
         self.lbl_count.grid(
@@ -348,8 +404,41 @@ class ISSTracker:
             row=7, column=0, padx=10, pady=10, sticky="ew"
         )
 
-        self.btn_exit.grid(
-            row=8, column=0, padx=10, pady=(40, 10), sticky="ew"
+    # ---------------------------- WEATHER ------------------------------- #
+        self.lbl_temp = ctk.CTkLabel(
+            self.status_frame,
+            text="Temperature:"
+        )
+        self.lbl_temp.grid(
+            row=8, column=0, padx=10, pady=(BIG_GAP, TINY_GAP), sticky="w"
+        )
+
+        self.lbl_humidity = ctk.CTkLabel(
+            self.status_frame,
+            text="Humidity:"
+        )
+        self.lbl_humidity.grid(
+            row=9, column=0, padx=10,
+            pady=(TINY_GAP), sticky="w")
+
+        self.lbl_wind = ctk.CTkLabel(
+            self.status_frame,
+            text="Wind Speed:"
+        )
+        self.lbl_wind.grid(
+            row=10, column=0, padx=10,
+            pady=(TINY_GAP), sticky="w")
+
+        self.lbl_pressure = ctk.CTkLabel(
+            self.status_frame,
+            text="Pressure:"
+        )
+        self.lbl_pressure.grid(
+            row=11, column=0, padx=10,
+            pady=(TINY_GAP, SMALL_GAP), sticky="w")
+
+        self.btn_quit.grid(
+            row=12, column=0, padx=10, pady=(40, 10), sticky="ew"
         )
 
         for child in self.status_frame.winfo_children():
