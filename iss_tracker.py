@@ -18,6 +18,7 @@ from PIL import ImageTk
 from requests import get
 from threading import Thread
 from tktooltip import ToolTip
+from wmo_codes import get_wmo_weather_description
 from iis_icon import ICON_16
 from iis_icon import ICON_32
 
@@ -231,6 +232,7 @@ class ISSTracker:
                 "surface_pressure",
                 "is_day"
             ],
+            "minutely_15": ["weather_code"],
             "temperature_unit": "fahrenheit",
             "wind_speed_unit": "mph",
             "pressure_unit": "hPa",
@@ -257,6 +259,9 @@ class ISSTracker:
         # one for each hour of the day, And assuming the first item
         # corresponds to the first hour of the current day in the specified timezone
         # This might need adjustment based on the actual structure and data of the response
+        wmo_code = data['minutely_15']['weather_code'][current_hour]
+        description = get_wmo_weather_description(wmo_code)
+        
         temp = data['hourly']['temperature_2m'][current_hour]
         humidity = data['hourly']['relativehumidity_2m'][current_hour]
         wind_speed = data['hourly']['wind_speed_10m'][current_hour]
@@ -271,6 +276,7 @@ class ISSTracker:
         #  console.print(f"     Temp: [bold cyan]{c_data[0]}°F[/bold cyan]")
         # console.print(f" Humidity: [bold cyan]{c_data[1]}%[/bold cyan]")
         # console.print(f"  Wind Sp: [bold cyan]{c_data[2]} mph[/bold cyan]")
+        self.lbl_description.configure(text=f"{description}")
         self.lbl_temp.configure(text=f"Temperature: {temp}°F")
         self.lbl_humidity.configure(text=f"Humidity: {humidity}%")
         self.lbl_wind.configure(text=f"Wind Speed: {wind_speed} mph")
@@ -410,12 +416,19 @@ class ISSTracker:
         )
 
     # ---------------------------- WEATHER ------------------------------- #
+        self.lbl_description = ctk.CTkLabel(
+            self.status_frame
+        )
+        self.lbl_description.grid(
+            row=8, column=0, padx=10, pady=(BIG_GAP, TINY_GAP), sticky="w"
+        )
+
         self.lbl_temp = ctk.CTkLabel(
             self.status_frame,
             text="Temperature:"
         )
         self.lbl_temp.grid(
-            row=8, column=0, padx=10, pady=(BIG_GAP, TINY_GAP), sticky="w"
+            row=9, column=0, padx=10, pady=(TINY_GAP), sticky="w"
         )
 
         self.lbl_humidity = ctk.CTkLabel(
@@ -423,7 +436,7 @@ class ISSTracker:
             text="Humidity:"
         )
         self.lbl_humidity.grid(
-            row=9, column=0, padx=10,
+            row=10, column=0, padx=10,
             pady=(TINY_GAP), sticky="w")
 
         self.lbl_wind = ctk.CTkLabel(
@@ -431,7 +444,7 @@ class ISSTracker:
             text="Wind Speed:"
         )
         self.lbl_wind.grid(
-            row=10, column=0, padx=10,
+            row=11, column=0, padx=10,
             pady=(TINY_GAP), sticky="w")
 
         self.lbl_pressure = ctk.CTkLabel(
@@ -439,15 +452,15 @@ class ISSTracker:
             text="Pressure:"
         )
         self.lbl_pressure.grid(
-            row=11, column=0, padx=10,
-            pady=(TINY_GAP, SMALL_GAP), sticky="w")
+            row=12, column=0, padx=10,
+            pady=(TINY_GAP), sticky="w")
 
         self.lbl_day = ctk.CTkLabel(
             self.status_frame,
             text="Day/Night:"
         )
         self.lbl_day.grid(
-            row=12, column=0, padx=10, pady=(TINY_GAP), sticky="w")
+            row=13, column=0, padx=10, pady=(SMALL_GAP), sticky="w")
 
     # ---------------------- QUIT BUTTON --------------------------------- #
         self.btn_quit = ctk.CTkButton(
@@ -457,7 +470,7 @@ class ISSTracker:
         )
         ToolTip(self.btn_quit, "Press the Escape key to quit")
         self.btn_quit.grid(
-            row=13, column=0, padx=10, pady=(40, 10), sticky="ew"
+            row=14, column=0, padx=10, pady=(BIG_GAP, SMALL_GAP), sticky="ew"
         )
 
         for child in self.status_frame.winfo_children():
