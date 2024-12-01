@@ -224,7 +224,13 @@ class ISSTracker:
         params = {
             "latitude": f"{self.lat}",
             "longitude": f"{self.lng}",
-            "hourly": ["temperature_2m", "relativehumidity_2m", "wind_speed_10m", "surface_pressure"],
+            "hourly": [
+                "temperature_2m",
+                "relativehumidity_2m",
+                "wind_speed_10m",
+                "surface_pressure",
+                "is_day"
+            ],
             "temperature_unit": "fahrenheit",
             "wind_speed_unit": "mph",
             "pressure_unit": "hPa",
@@ -256,6 +262,11 @@ class ISSTracker:
         wind_speed = data['hourly']['wind_speed_10m'][current_hour]
         pressure = data['hourly']['surface_pressure'][current_hour]
         pressure = round(pressure * 0.029529983071445, 2)
+        day = data['hourly']['is_day'][current_hour]
+        if day == 1:
+            day = "Daytime"
+        else:
+            day = "Nighttime"
 
         #  console.print(f"     Temp: [bold cyan]{c_data[0]}°F[/bold cyan]")
         # console.print(f" Humidity: [bold cyan]{c_data[1]}%[/bold cyan]")
@@ -264,6 +275,7 @@ class ISSTracker:
         self.lbl_humidity.configure(text=f"Humidity: {humidity}%")
         self.lbl_wind.configure(text=f"Wind Speed: {wind_speed} mph")
         self.lbl_pressure.configure(text=f"Pressure: {pressure} inHg")
+        self.lbl_day.configure(text=f"Day/Night: {day}")
 
 # ------------------------- RUN ------------------------------------------ #
 
@@ -368,13 +380,6 @@ class ISSTracker:
         )
         ToolTip(self.interval_button, "Set the update interval in seconds")
 
-        self.btn_quit = ctk.CTkButton(
-            self.status_frame,
-            text="Quit",
-            command=self.quit
-        )
-        ToolTip(self.btn_quit, "Press the Escape key to quit")
-
         # Grid layout for status labels
         self.lbl_lat.grid(
             row=0, column=0, padx=SMALL_GAP, pady=SMALL_GAP, sticky="ew"
@@ -437,8 +442,22 @@ class ISSTracker:
             row=11, column=0, padx=10,
             pady=(TINY_GAP, SMALL_GAP), sticky="w")
 
+        self.lbl_day = ctk.CTkLabel(
+            self.status_frame,
+            text="Day/Night:"
+        )
+        self.lbl_day.grid(
+            row=12, column=0, padx=10, pady=(TINY_GAP), sticky="w")
+
+    # ---------------------- QUIT BUTTON --------------------------------- #
+        self.btn_quit = ctk.CTkButton(
+            self.status_frame,
+            text="Quit",
+            command=self.quit
+        )
+        ToolTip(self.btn_quit, "Press the Escape key to quit")
         self.btn_quit.grid(
-            row=12, column=0, padx=10, pady=(40, 10), sticky="ew"
+            row=13, column=0, padx=10, pady=(40, 10), sticky="ew"
         )
 
         for child in self.status_frame.winfo_children():
