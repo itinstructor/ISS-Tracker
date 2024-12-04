@@ -21,9 +21,14 @@ from tktooltip import ToolTip
 from wmo_codes import get_wmo_weather_description
 from iis_icon import ICON_16
 from iis_icon import ICON_32
+from ctk_horizontal_spinbox import CTkHorizontalSpinbox
 
 # https://wheretheiss.at/w/developer
 URL = "https://api.wheretheiss.at/v1/satellites/25544?units=miles"
+
+BIG_GAP = 40
+SMALL_GAP = 10
+TINY_GAP = 5
 
 
 class ISSTracker:
@@ -206,9 +211,19 @@ class ISSTracker:
             )
 
 # ------------------------- CHANGE UPDATE INTERVAL ----------------------- #
-    def change_update_interval(self, new_interval: str):
-        """Change the update interval for ISS position tracking."""
+    def change_update_interval(self, new_interval: str = None):
+        """
+        Change the update interval for ISS position tracking.
+
+        Change the update interval.
+
+        :param value: The new interval value
+        If no value passed, get from spinbox
+        """
         try:
+            if new_interval is None:
+                new_interval = self.interval_spinbox.get()
+
             interval = int(new_interval)
             if interval > 0:
                 self.update_interval = interval
@@ -219,6 +234,8 @@ class ISSTracker:
                 raise ValueError("Interval must be a positive integer")
         except ValueError:
             print("Invalid update interval. Please enter a positive number.")
+        except Exception as e:
+            print(f"Error changing update interval: {e}")
 
 # ------------------------- GET WEATHER ---------------------------------- #
     def get_weather(self):
@@ -300,12 +317,9 @@ class ISSTracker:
         # Start the main event loop of the program
         self.root.mainloop()
 
-# ------------------------- CREATE WIDGETS ------------------------------- #
+# ------------------------- CREATE WIDGETS -------------------------
     def create_widgets(self):
         """Create the main application widgets."""
-        BIG_GAP = 40
-        SMALL_GAP = 10
-        TINY_GAP = 5
 
         # Create main container
         self.main_frame = ctk.CTkFrame(self.root)
@@ -371,19 +385,18 @@ class ISSTracker:
         )
         ToolTip(self.map_option_menu, "Select a map tile server")
 
-        # Add update interval input
-        self.interval_entry = ctk.CTkEntry(
+        # Replace interval entry and button with custom spinbox
+        self.interval_spinbox = CTkHorizontalSpinbox(
             self.status_frame,
-            placeholder_text="Enter update interval (seconds)"
+            min_value=5,     # Minimum 10 seconds
+            max_value=300,    # Maximum 5 minutes
+            initial_value=self.update_interval,
+            command=self.change_update_interval
         )
-        self.interval_button = ctk.CTkButton(
-            self.status_frame,
-            text="Set Interval",
-            command=lambda: self.change_update_interval(
-                self.interval_entry.get()
-            )
+        self.interval_spinbox.grid(
+            row=6, column=0, padx=10, pady=(40, 10), sticky="ew"
         )
-        ToolTip(self.interval_button, "Set the update interval in seconds")
+        ToolTip(self.interval_spinbox, "Select update interval in seconds")
 
         # Grid layout for status labels
         self.lbl_lat.grid(
@@ -407,14 +420,7 @@ class ISSTracker:
             row=5, column=0, padx=10, pady=10, sticky="ew"
         )
 
-        self.interval_entry.grid(
-            row=6, column=0, padx=10, pady=(40, 10), sticky="ew"
-        )
-        self.interval_button.grid(
-            row=7, column=0, padx=10, pady=10, sticky="ew"
-        )
-
-    # ---------------------------- WEATHER ------------------------------- #
+        # Weather labels
         self.lbl_description = ctk.CTkLabel(
             self.status_frame
         )
