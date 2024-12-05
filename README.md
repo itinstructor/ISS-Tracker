@@ -9,7 +9,7 @@
 
 ## Changes
 
-- 12/0482024: Added CustomTkinter horizontal spinbox to change update interval
+- 12/04/2024: Added CustomTkinter custom horizontal spinbox to change update interval
 - 11/30/2024: Added surface weather from [Open-Meteo](https://open-meteo.com/en/docs)
 - 11/18/2024: Added line between locations, added ability to change update interval
 - 11/09/2024: Initial commit
