@@ -2,8 +2,8 @@
 
 ## Overview
 
-- Python3 Tkinter using [Tkintermapview](https://github.com/TomSchimansky/TkinterMapView)
-- [CustomTkinter](https://customtkinter.tomschimansky.com/)
+- Python3 [CustomTkinter](https://customtkinter.tomschimansky.com/)
+- [Tkintermapview](https://github.com/TomSchimansky/TkinterMapView)
 
 ![ISS Tracker](./img/iss_program.png)
 

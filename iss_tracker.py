@@ -6,21 +6,26 @@
     and TkinterMapView
     Claude.ai used as a code helper
 """
+# https://github.com/TomSchimansky/CustomTkinter
+# pip install customtkinter
+import customtkinter as ctk
 # https://github.com/TomSchimansky/TkinterMapView
 # pip install tkintermapview
-import requests
 import tkintermapview as tkmap
+# pip install requests
+import requests
+from requests import get
+# pip install pillow
+from PIL import ImageTk
+# pip install tkinter-tooltip
+from tktooltip import ToolTip
 from base64 import b64decode
 from time import sleep
 from datetime import datetime
-import customtkinter as ctk
-from PIL import ImageTk
-from requests import get
 from threading import Thread
-from tktooltip import ToolTip
 from wmo_codes import get_wmo_weather_description
-from iis_icon import ICON_16
-from iis_icon import ICON_32
+from iss_icon import ICON_16
+from iss_icon import ICON_32
 from ctk_horizontal_spinbox import CTkHorizontalSpinbox
 
 # https://wheretheiss.at/w/developer
@@ -28,7 +33,7 @@ URL = "https://api.wheretheiss.at/v1/satellites/25544?units=miles"
 
 BIG_GAP = 40
 SMALL_GAP = 10
-TINY_GAP = 5
+TINY_GAP = 1
 
 
 class ISSTracker:
@@ -497,14 +502,14 @@ class ISSTracker:
         )
         self.lbl_day.grid(
             row=13, column=0, padx=10,
-            pady=(SMALL_GAP), sticky="e")
+            pady=(TINY_GAP, SMALL_GAP), sticky="e")
 
         self.lbl_display_day = ctk.CTkLabel(
             self.status_frame,
             anchor="w"
         )
         self.lbl_display_day.grid(
-            row=13, column=1, padx=10, pady=(SMALL_GAP), sticky="w")
+            row=13, column=1, padx=10, pady=(TINY_GAP, SMALL_GAP), sticky="w")
 
     # ---------------------- QUIT BUTTON --------------------------------- #
         self.btn_quit = ctk.CTkButton(
