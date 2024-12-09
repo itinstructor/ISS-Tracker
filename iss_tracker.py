@@ -294,11 +294,11 @@ class ISSTracker:
         # console.print(f" Humidity: [bold cyan]{c_data[1]}%[/bold cyan]")
         # console.print(f"  Wind Sp: [bold cyan]{c_data[2]} mph[/bold cyan]")
         self.lbl_description.configure(text=f"{description}")
-        self.lbl_temp.configure(text=f"Temperature: {temp}°F")
-        self.lbl_humidity.configure(text=f"Humidity: {humidity}%")
-        self.lbl_wind.configure(text=f"Wind Speed: {wind_speed} mph")
-        self.lbl_pressure.configure(text=f"Pressure: {pressure} inHg")
-        self.lbl_day.configure(text=f"Day/Night: {day}")
+        self.lbl_display_temp.configure(text=f"{temp}°F")
+        self.lbl_display_humidity.configure(text=f"{humidity}%")
+        self.lbl_display_wind.configure(text=f"{wind_speed} mph")
+        self.lbl_display_pressure.configure(text=f"{pressure} inHg")
+        self.lbl_display_day.configure(text=f"{day}")
 
 # ------------------------- RUN ------------------------------------------ #
     def run(self):
@@ -394,78 +394,117 @@ class ISSTracker:
             command=self.change_update_interval
         )
         self.interval_spinbox.grid(
-            row=6, column=0, padx=10, pady=(40, 10), sticky="ew"
+            row=6, column=0, columnspan=2, padx=10, pady=(40, 10), sticky="ew"
         )
         ToolTip(self.interval_spinbox, "Select update interval in seconds")
 
         # Grid layout for status labels
         self.lbl_lat.grid(
-            row=0, column=0, padx=SMALL_GAP, pady=SMALL_GAP, sticky="ew"
+            row=0, column=0, columnspan=2, padx=SMALL_GAP, pady=SMALL_GAP, sticky="ew"
         )
         self.lbl_lng.grid(
-            row=1, column=0, padx=SMALL_GAP, pady=10, sticky="ew"
+            row=1, column=0, columnspan=2, padx=SMALL_GAP, pady=10, sticky="ew"
         )
 
         self.lbl_count.grid(
-            row=2, column=0, padx=10, pady=(40, 10), sticky="ew"
+            row=2, column=0, columnspan=2, padx=10, pady=(40, 10), sticky="ew"
         )
         self.lbl_interval.grid(
-            row=3, column=0, padx=10, pady=10, sticky="ew"
+            row=3, column=0, columnspan=2, padx=10, pady=10, sticky="ew"
         )
 
         self.lbl_tile_server.grid(
-            row=4, column=0, padx=10, pady=(40, 10), sticky="ew"
+            row=4, column=0, columnspan=2, padx=10, pady=(40, 10), sticky="ew"
         )
         self.map_option_menu.grid(
-            row=5, column=0, padx=10, pady=10, sticky="ew"
+            row=5, column=0, columnspan=2, padx=10, pady=10, sticky="ew"
         )
 
-        # Weather labels
+    # ---------------------- WEATHER LABELS ------------------------------ #
         self.lbl_description = ctk.CTkLabel(
-            self.status_frame
+            self.status_frame, anchor="center", wraplength=300
         )
         self.lbl_description.grid(
-            row=8, column=0, padx=10, pady=(BIG_GAP, TINY_GAP), sticky="w"
+            row=8, column=0, padx=10, columnspan=2,
+            pady=(BIG_GAP, TINY_GAP), sticky="ew"
         )
 
         self.lbl_temp = ctk.CTkLabel(
             self.status_frame,
-            text="Temperature:"
+            text="Temperature:", anchor="e"
         )
         self.lbl_temp.grid(
-            row=9, column=0, padx=10, pady=(TINY_GAP), sticky="w"
+            row=9, column=0, padx=10, pady=(TINY_GAP), sticky="e"
+        )
+
+        self.lbl_display_temp = ctk.CTkLabel(
+            self.status_frame, anchor="w"
+        )
+        self.lbl_display_temp.grid(
+            row=9, column=1, padx=10, pady=(TINY_GAP), sticky="w"
         )
 
         self.lbl_humidity = ctk.CTkLabel(
             self.status_frame,
-            text="Humidity:"
+            text="Humidity:", anchor="e"
         )
         self.lbl_humidity.grid(
             row=10, column=0, padx=10,
-            pady=(TINY_GAP), sticky="w")
+            pady=(TINY_GAP), sticky="e")
+
+        self.lbl_display_humidity = ctk.CTkLabel(
+            self.status_frame, anchor="w"
+        )
+        self.lbl_display_humidity.grid(
+            row=10, column=1, padx=10,
+            pady=(TINY_GAP), sticky="w"
+        )
 
         self.lbl_wind = ctk.CTkLabel(
             self.status_frame,
-            text="Wind Speed:"
+            text="Wind Speed:", anchor="e"
         )
         self.lbl_wind.grid(
             row=11, column=0, padx=10,
+            pady=(TINY_GAP), sticky="e")
+
+        self.lbl_display_wind = ctk.CTkLabel(
+            self.status_frame, anchor="w"
+        )
+        self.lbl_display_wind.grid(
+            row=11, column=1, padx=10,
             pady=(TINY_GAP), sticky="w")
 
         self.lbl_pressure = ctk.CTkLabel(
             self.status_frame,
-            text="Pressure:"
+            text="Pressure:", anchor="e"
         )
+
         self.lbl_pressure.grid(
             row=12, column=0, padx=10,
+            pady=(TINY_GAP), sticky="e")
+
+        self.lbl_display_pressure = ctk.CTkLabel(
+            self.status_frame, anchor="w"
+        )
+        self.lbl_display_pressure.grid(
+            row=12, column=1, padx=10,
             pady=(TINY_GAP), sticky="w")
 
         self.lbl_day = ctk.CTkLabel(
             self.status_frame,
-            text="Day/Night:"
+            text="Day/Night:", anchor="e"
         )
         self.lbl_day.grid(
-            row=13, column=0, padx=10, pady=(SMALL_GAP), sticky="w")
+            row=13, column=0, padx=10,
+            pady=(SMALL_GAP), sticky="e")
+
+        self.lbl_display_day = ctk.CTkLabel(
+            self.status_frame,
+            anchor="w"
+        )
+        self.lbl_display_day.grid(
+            row=13, column=1, padx=10, pady=(SMALL_GAP), sticky="w")
 
     # ---------------------- QUIT BUTTON --------------------------------- #
         self.btn_quit = ctk.CTkButton(
@@ -476,7 +515,7 @@ class ISSTracker:
         ToolTip(self.btn_quit, "Press the Escape key to quit")
         self.btn_quit.grid(
             row=14, column=0, padx=10,
-            pady=(BIG_GAP, SMALL_GAP), sticky="ew"
+            pady=(BIG_GAP, SMALL_GAP), sticky="ew", columnspan=2
         )
 
         for child in self.status_frame.winfo_children():
