@@ -33,7 +33,7 @@ URL = "https://api.wheretheiss.at/v1/satellites/25544?units=miles"
 
 BIG_GAP = 40
 SMALL_GAP = 10
-TINY_GAP = 1
+TINY_GAP = 0
 
 
 class ISSTracker:
@@ -252,6 +252,7 @@ class ISSTracker:
                 "relativehumidity_2m",
                 "wind_speed_10m",
                 "surface_pressure",
+                "cloud_cover",
                 "is_day"
             ],
             "minutely_15": ["weather_code"],
@@ -289,6 +290,7 @@ class ISSTracker:
         wind_speed = data['hourly']['wind_speed_10m'][current_hour]
         pressure = data['hourly']['surface_pressure'][current_hour]
         pressure = round(pressure * 0.029529983071445, 2)
+        cloud_cover = data['hourly']['cloud_cover'][current_hour]
         day = data['hourly']['is_day'][current_hour]
         if day == 1:
             day = "Daytime"
@@ -303,6 +305,7 @@ class ISSTracker:
         self.lbl_display_humidity.configure(text=f"{humidity}%")
         self.lbl_display_wind.configure(text=f"{wind_speed} mph")
         self.lbl_display_pressure.configure(text=f"{pressure} inHg")
+        self.lbl_display_cloud_cover.configure(text=f"{cloud_cover}%")
         self.lbl_display_day.configure(text=f"{day}")
 
 # ------------------------- RUN ------------------------------------------ #
@@ -322,7 +325,7 @@ class ISSTracker:
         # Start the main event loop of the program
         self.root.mainloop()
 
-# ------------------------- CREATE WIDGETS -------------------------
+# ------------------------- CREATE WIDGETS ------------------------------- #
     def create_widgets(self):
         """Create the main application widgets."""
 
@@ -496,12 +499,29 @@ class ISSTracker:
             row=12, column=1, padx=10,
             pady=(TINY_GAP), sticky="w")
 
+        self.lbl_cloud_cover = ctk.CTkLabel(
+            self.status_frame,
+            text="Cloud Cover:", anchor="e"
+        )
+        self.lbl_cloud_cover.grid(
+            row=13, column=0, padx=10,
+            pady=(TINY_GAP), sticky="e")
+
+        self.lbl_display_cloud_cover = ctk.CTkLabel(
+            self.status_frame, anchor="w"
+        )
+
+        self.lbl_display_cloud_cover.grid(
+            row=13, column=1, padx=10,
+            pady=(TINY_GAP), sticky="w"
+        )
+
         self.lbl_day = ctk.CTkLabel(
             self.status_frame,
             text="Day/Night:", anchor="e"
         )
         self.lbl_day.grid(
-            row=13, column=0, padx=10,
+            row=14, column=0, padx=10,
             pady=(TINY_GAP, SMALL_GAP), sticky="e")
 
         self.lbl_display_day = ctk.CTkLabel(
@@ -509,7 +529,7 @@ class ISSTracker:
             anchor="w"
         )
         self.lbl_display_day.grid(
-            row=13, column=1, padx=10, pady=(TINY_GAP, SMALL_GAP), sticky="w")
+            row=14, column=1, padx=10, pady=(TINY_GAP, SMALL_GAP), sticky="w")
 
     # ---------------------- QUIT BUTTON --------------------------------- #
         self.btn_quit = ctk.CTkButton(
@@ -519,7 +539,7 @@ class ISSTracker:
         )
         ToolTip(self.btn_quit, "Press the Escape key to quit")
         self.btn_quit.grid(
-            row=14, column=0, padx=10,
+            row=15, column=0, padx=10,
             pady=(BIG_GAP, SMALL_GAP), sticky="ew", columnspan=2
         )
 
