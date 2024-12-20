@@ -163,7 +163,7 @@ class ISSTracker:
                 print(f"Error updating ISS position: {e}")
 
 # --------------------- UPDATE MARKER POSITION --------------------------- #
-    def update_marker_position(self):
+    def update_marker_position(self) -> None:
         """Update the marker and map position in the GUI thread."""
         if self.marker:
             # Draw line from previous position
@@ -196,27 +196,33 @@ class ISSTracker:
             self.previous_positions.append((self.lat, self.lng))
 
 # ------------------------- CHANGE MAP ----------------------------------- #
-    def change_map(self, new_map: str):
+    def change_map(self, new_map: str) -> None:
         """Change the map tile server based on the selected option."""
         if new_map == "OpenStreetMap":
             self.map.set_tile_server(
                 "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
             )
 
-        elif new_map == "Google normal":
+        elif new_map == "Google Normal":
             self.map.set_tile_server(
                 "https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga",
                 max_zoom=22
             )
 
-        elif new_map == "Google satellite":
+        elif new_map == "Google Satellite":
             self.map.set_tile_server(
                 "https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}&s=Ga",
                 max_zoom=22
             )
 
+        # Add OpenRailwayMap tile server
+        if new_map == "OpenRailwayMap":
+            self.map.set_overlay_tile_server(
+                "http://a.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png"
+            )
+
 # ------------------------- CHANGE UPDATE INTERVAL ----------------------- #
-    def change_update_interval(self, new_interval: str = None):
+    def change_update_interval(self, new_interval: str = None) -> None:
         """
         Change the update interval for ISS position tracking.
 
@@ -373,6 +379,17 @@ class ISSTracker:
             corner_radius=6,
             fg_color=("gray85", "gray25")
         )
+
+        # Replace interval entry and button with custom spinbox
+        self.interval_spinbox = CTkHorizontalSpinbox(
+            self.status_frame,
+            min_value=5,     # Minimum 10 seconds
+            max_value=300,    # Maximum 5 minutes
+            initial_value=self.update_interval,
+            command=self.change_update_interval
+        )
+        ToolTip(self.interval_spinbox, "Select update interval in seconds")
+
         self.lbl_interval = ctk.CTkLabel(
             self.status_frame,
             text=f"Update Interval: {self.update_interval} seconds",
@@ -389,23 +406,18 @@ class ISSTracker:
         # Create option menus
         self.map_option_menu = ctk.CTkOptionMenu(
             self.status_frame,
-            values=["OpenStreetMap", "Google Normal", "Google Satellite"],
+            values=["OpenStreetMap", "Google Normal",
+                    "Google Satellite"],
             command=self.change_map
         )
         ToolTip(self.map_option_menu, "Select a map tile server")
 
-        # Replace interval entry and button with custom spinbox
-        self.interval_spinbox = CTkHorizontalSpinbox(
-            self.status_frame,
-            min_value=5,     # Minimum 10 seconds
-            max_value=300,    # Maximum 5 minutes
-            initial_value=self.update_interval,
-            command=self.change_update_interval
-        )
-        self.interval_spinbox.grid(
-            row=6, column=0, columnspan=2, padx=10, pady=(40, 10), sticky="ew"
-        )
-        ToolTip(self.interval_spinbox, "Select update interval in seconds")
+        # self.map_overlay_menu = ctk.CTkOptionMenu(
+        #     self.status_frame,
+        #     values=["", "OpenRailwayMap"],
+        #     command=self.change_map
+        # )
+        # ToolTip(self.map_option_menu, "Select an overlay map tile server")
 
         # Grid layout for status labels
         self.lbl_lat.grid(
@@ -415,19 +427,24 @@ class ISSTracker:
             row=1, column=0, columnspan=2, padx=SMALL_GAP, pady=10, sticky="ew"
         )
 
-        self.lbl_count.grid(
+        self.interval_spinbox.grid(
             row=2, column=0, columnspan=2, padx=10, pady=(40, 10), sticky="ew"
         )
         self.lbl_interval.grid(
             row=3, column=0, columnspan=2, padx=10, pady=10, sticky="ew"
         )
+        self.lbl_count.grid(
+            row=4, column=0, columnspan=2, padx=10, pady=(10, 40), sticky="ew"
+        )
 
         self.lbl_tile_server.grid(
-            row=4, column=0, columnspan=2, padx=10, pady=(40, 10), sticky="ew"
+            row=5, column=0, columnspan=2, padx=10, pady=(10), sticky="ew"
         )
         self.map_option_menu.grid(
-            row=5, column=0, columnspan=2, padx=10, pady=10, sticky="ew"
+            row=6, column=0, columnspan=2, padx=10, pady=10, sticky="ew"
         )
+        # self.map_overlay_menu.grid(
+        #     row=6, column=0, columnspan=2, padx=10, pady=10, sticky="ew")
 
     # ---------------------- WEATHER LABELS ------------------------------ #
         self.lbl_description = ctk.CTkLabel(
