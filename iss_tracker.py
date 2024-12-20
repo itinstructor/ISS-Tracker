@@ -328,7 +328,6 @@ class ISSTracker:
 # ------------------------- CREATE WIDGETS ------------------------------- #
     def create_widgets(self):
         """Create the main application widgets."""
-
         # Create main container
         self.main_frame = ctk.CTkFrame(self.root)
         self.main_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
@@ -350,8 +349,10 @@ class ISSTracker:
 
         # Create status frame with modern styling
         self.status_frame = ctk.CTkFrame(self.main_frame)
-        self.status_frame.grid(row=0, column=1, padx=10,
-                               pady=(10), sticky="nsew")
+        self.status_frame.grid(
+            row=0, column=1, padx=10,
+            pady=(10), sticky="nsew"
+        )
 
         # Create labels with CustomTkinter styling
         self.lbl_lat = ctk.CTkLabel(
@@ -388,7 +389,7 @@ class ISSTracker:
         # Create option menus
         self.map_option_menu = ctk.CTkOptionMenu(
             self.status_frame,
-            values=["OpenStreetMap", "Google normal", "Google satellite"],
+            values=["OpenStreetMap", "Google Normal", "Google Satellite"],
             command=self.change_map
         )
         ToolTip(self.map_option_menu, "Select a map tile server")
