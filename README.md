@@ -18,10 +18,8 @@
 
 I am an Information Technology Instructor at [Western Nebraska Community College](https://www.wncc.edu). I teach Information Technology, CyberSecurity and Computer Science. Best job ever!
 
-This is a collection of PyGame tutorials for my Computer Science classes at Western Nebraska Community College.
-
 - Facebook: [Facebook WNCC IT Program](https://www.facebook.com/wnccitprogram/)
-- YouTube: [YouTube WINCC IT Program](https://www.youtube.com/@williamloringitinstructor)
+- YouTube: [YouTube WINCC IT Program](https://www.youtube.com/@wnccitprogram)
 
 ## License
 
