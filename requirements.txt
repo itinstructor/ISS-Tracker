@@ -1,0 +1,6 @@
+####### Requirements #######
+customtkinter
+tkintermapview
+requests
+pillow
+tkinter-tooltip
