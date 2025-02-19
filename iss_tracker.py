@@ -13,7 +13,6 @@ import customtkinter as ctk
 # pip install tkintermapview
 import tkintermapview as tkmap
 # pip install requests
-import requests
 from requests import get
 # pip install pillow
 from PIL import ImageTk
@@ -21,12 +20,11 @@ from PIL import ImageTk
 from tktooltip import ToolTip
 from base64 import b64decode
 from time import sleep
-from datetime import datetime
 from threading import Thread
-from wmo_codes import get_wmo_weather_description
 from iss_icon import ICON_16
 from iss_icon import ICON_32
 from ctk_horizontal_spinbox import CTkHorizontalSpinbox
+from openmeteo import get_weather
 
 # https://wheretheiss.at/w/developer
 URL = "https://api.wheretheiss.at/v1/satellites/25544?units=miles"
@@ -37,7 +35,7 @@ TINY_GAP = 0
 
 
 class ISSTracker:
-    """Class to track and display the International Space Station's position on a map."""
+    """Track and display the International Space Station's position on a map."""
 
     def __init__(
         self,
@@ -92,7 +90,7 @@ class ISSTracker:
         # Initialize marker with current ISS position
         self.initialize_marker()
 
-# -------------------------INITIALIZE MARKER ----------------------------- #
+# -------------------------INITIALIZE MARKER ------------------------------- #
     def initialize_marker(self):
         """Create the initial ISS marker with the current ISS position."""
         try:
@@ -135,7 +133,7 @@ class ISSTracker:
         self.lat = float(position.get("latitude"))
         self.lng = float(position.get("longitude"))
 
-# -------------------- UPDATE ISS POSITION THREAD ------------------------ #
+# -------------------- UPDATE ISS POSITION THREAD -------------------------- #
     def update_iss_position_thread(self):
         """Update the ISS marker position on the map."""
         while self.running:
@@ -162,7 +160,7 @@ class ISSTracker:
             except Exception as e:
                 print(f"Error updating ISS position: {e}")
 
-# --------------------- UPDATE MARKER POSITION --------------------------- #
+# --------------------- UPDATE MARKER POSITION ----------------------------- #
     def update_marker_position(self) -> None:
         """Update the marker and map position in the GUI thread."""
         if self.marker:
@@ -195,7 +193,7 @@ class ISSTracker:
             )
             self.previous_positions.append((self.lat, self.lng))
 
-# ------------------------- CHANGE MAP ----------------------------------- #
+# ------------------------- CHANGE MAP ------------------------------------- #
     def change_map(self, new_map: str) -> None:
         """Change the map tile server based on the selected option."""
         if new_map == "OpenStreetMap":
@@ -221,7 +219,7 @@ class ISSTracker:
                 "http://a.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png"
             )
 
-# ------------------------- CHANGE UPDATE INTERVAL ----------------------- #
+# ------------------------- CHANGE UPDATE INTERVAL ------------------------- #
     def change_update_interval(self, new_interval: str = None) -> None:
         """
         Change the update interval for ISS position tracking.
@@ -248,73 +246,23 @@ class ISSTracker:
         except Exception as e:
             print(f"Error changing update interval: {e}")
 
-# ------------------------- GET WEATHER ---------------------------------- #
+# ------------------------- GET WEATHER ------------------------------------ #
     def get_weather(self):
-        params = {
-            "latitude": f"{self.lat}",
-            "longitude": f"{self.lng}",
-            "hourly": [
-                "temperature_2m",
-                "relativehumidity_2m",
-                "wind_speed_10m",
-                "surface_pressure",
-                "cloud_cover",
-                "is_day"
-            ],
-            "minutely_15": ["weather_code"],
-            "temperature_unit": "fahrenheit",
-            "wind_speed_unit": "mph",
-            "pressure_unit": "hPa",
-            "timezone": "America/Denver"
-        }
+        weather_data = get_weather(self.lat, self.lng)
 
-        # URL to access current Open-Meteo weather for a location
-        URL = "https://api.open-meteo.com/v1/forecast?"
-        # Get the API JSON data as a Python requests object
-        response = requests.get(
-            URL,
-            params=params
-        )
+        self.lbl_description.configure(text=f"{weather_data['description']}")
+        self.lbl_display_temp.configure(text=f"{weather_data['temp']}°F")
+        self.lbl_display_humidity.configure(
+            text=f"{weather_data['humidity']}%")
+        self.lbl_display_wind.configure(
+            text=f"{weather_data['wind_speed']} mph")
+        self.lbl_display_pressure.configure(
+            text=f"{weather_data['pressure']} inHg")
+        self.lbl_display_cloud_cover.configure(
+            text=f"{weather_data['cloud_cover']}%")
+        self.lbl_display_day.configure(text=f"{weather_data['day']}")
 
-        data = response.json()
-
-        # Get current hour
-        current_hour = datetime.now().hour
-
-        # Print raw JSON data for demonstration
-        # print(response.text)
-
-        # Assuming the response contains an hourly list with 24 items,
-        # one for each hour of the day, And assuming the first item
-        # corresponds to the first hour of the current day in the specified timezone
-        # This might need adjustment based on the actual structure and data of the response
-        wmo_code = data['minutely_15']['weather_code'][current_hour]
-        description = get_wmo_weather_description(wmo_code)
-
-        temp = data['hourly']['temperature_2m'][current_hour]
-        humidity = data['hourly']['relativehumidity_2m'][current_hour]
-        wind_speed = data['hourly']['wind_speed_10m'][current_hour]
-        pressure = data['hourly']['surface_pressure'][current_hour]
-        pressure = round(pressure * 0.029529983071445, 2)
-        cloud_cover = data['hourly']['cloud_cover'][current_hour]
-        day = data['hourly']['is_day'][current_hour]
-        if day == 1:
-            day = "Daytime"
-        else:
-            day = "Nighttime"
-
-        #  console.print(f"     Temp: [bold cyan]{c_data[0]}°F[/bold cyan]")
-        # console.print(f" Humidity: [bold cyan]{c_data[1]}%[/bold cyan]")
-        # console.print(f"  Wind Sp: [bold cyan]{c_data[2]} mph[/bold cyan]")
-        self.lbl_description.configure(text=f"{description}")
-        self.lbl_display_temp.configure(text=f"{temp}°F")
-        self.lbl_display_humidity.configure(text=f"{humidity}%")
-        self.lbl_display_wind.configure(text=f"{wind_speed} mph")
-        self.lbl_display_pressure.configure(text=f"{pressure} inHg")
-        self.lbl_display_cloud_cover.configure(text=f"{cloud_cover}%")
-        self.lbl_display_day.configure(text=f"{day}")
-
-# ------------------------- RUN ------------------------------------------ #
+# --------------------------- RUN ------------------------------------------ #
     def run(self):
         """Start the ISS tracker application."""
         self.running = True
@@ -331,7 +279,7 @@ class ISSTracker:
         # Start the main event loop of the program
         self.root.mainloop()
 
-# ------------------------- CREATE WIDGETS ------------------------------- #
+# --------------------------- CREATE WIDGETS ------------------------------- #
     def create_widgets(self):
         """Create the main application widgets."""
         # Create main container
